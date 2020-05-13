@@ -12,9 +12,19 @@ if (!require("icaeDesign")){
   devtools::install_github("graebnerc/icaeDesign")
 }
 
-classification <- "finance"
+classification <- "north_south"
 start_year <- 2017
 end_year <- 2020
+
+fig_height <- 3
+fig_width <- 11
+plots_title_size <- 12
+plots_axis_title_size <- 11
+plots_axis_ticks_size <- 10
+strip_text_size <- 10
+x_axis_breaks <- c(2017, 2018, 2019, 2020)
+
+
 
 if (classification=="north_south"){
   source(here("R/setup_country_classification_North_South.R"))
@@ -86,11 +96,6 @@ macro_data <- macro_data %>%
   ) %>%
   dplyr::ungroup() 
 
-plots_title_size <- 10
-plots_axis_title_size <- 8
-plots_axis_ticks_size <- 8
-x_axis_breaks <- c(2017, 2018, 2019, 2020)
-
 
 # Figure 2: Domestic demand and exports----------------------------------------
 
@@ -128,12 +133,13 @@ exports_domestic_plot <- ggplot(
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size), 
-        axis.title.x = element_blank())
+        axis.title.x = element_blank(), 
+        strip.text = element_text(color="black", size=strip_text_size))
 exports_domestic_plot
 
 ggsave(plot = exports_domestic_plot, 
        filename = paste0(here("output/fig_2_exp-domestic_"), classification, ".pdf"),
-       width = 10, height = 4)
+       width = fig_width, height = fig_height)
 
 # Figure 3: Exports of goods and services--------------------------------------
 
@@ -171,10 +177,11 @@ goods_services_plot <- ggplot(
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size), 
-        axis.title.x = element_blank())
+        axis.title.x = element_blank(),
+        strip.text = element_text(color="black", size=strip_text_size))
 goods_services_plot
 
 ggsave(plot = goods_services_plot, 
        filename = paste0(here("output/fig_3_exp-goods-services_"), 
                          classification, ".pdf"),
-       width = 10, height = 4)
+       width = fig_width, height = fig_height)

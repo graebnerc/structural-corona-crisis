@@ -12,9 +12,7 @@ if (!require("icaeDesign")){
   devtools::install_github("graebnerc/icaeDesign")
 }
 
-classification <- "finance"
-download_bond_data <- F
-download_eurostat_debt <- F
+classification <- "north_south"
 
 if (classification=="north_south"){
   source(here("R/setup_country_classification_North_South.R"))
@@ -72,8 +70,8 @@ if (classification=="north_south"){
 start_year <- 2000
 end_year <- 2020
 
-plots_title_size <- 8
-plots_axis_title_size <- 7
+plots_title_size <- 10
+plots_axis_title_size <- 8
 plots_axis_ticks_size <- 7
 
 x_axis_breaks <- c(2000, 2005, 2007, 2010, 2015, 2020)
@@ -108,7 +106,8 @@ dev_mean_plot <- macro_data %>%
   ) +
   scale_color_icae(palette = "mixed") + 
   theme(legend.text=element_text(size=7)) +
-  theme(axis.title = element_text(color="black", size=plots_axis_title_size),
+  theme(axis.title.y = element_text(color="black", size=plots_axis_title_size), 
+        axis.title.x = element_blank(),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
 dev_mean_plot
@@ -157,6 +156,7 @@ unemp_plot <- macro_data %>%
   theme_icae() + 
   theme(legend.text=element_text(size=7)) +
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
+        axis.title.x = element_blank(),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
 unemp_plot 
@@ -205,6 +205,7 @@ fiscalbalance_plot <- macro_data %>%
   theme_icae() + 
   theme(legend.text=element_text(size=7)) +
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
+        axis.title.x = element_blank(),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
 fiscalbalance_plot 
@@ -253,6 +254,7 @@ publicdebt_plot <- macro_data %>%
   theme_icae() + 
   theme(legend.text=element_text(size=7)) +
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
+        axis.title.x = element_blank(),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
 publicdebt_plot

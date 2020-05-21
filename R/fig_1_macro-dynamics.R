@@ -161,6 +161,54 @@ unemp_plot <- macro_data %>%
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
 unemp_plot 
 
+# 1.2 GDP growth--------------------------------------------------------
+start_year <- 2000
+end_year <- 2020
+x_axis_breaks <- c(2000, 2005, 2007, 2010, 2015, 2020)
+GDPgrowth_plot <- macro_data %>%
+  dplyr::select(dplyr::one_of(
+    "year", "iso3c", "GDPgrowth", "population", "is.north")
+  ) %>%
+  dplyr::rename(population=population) %>%
+  dplyr::filter(year>=start_year & year <= end_year) %>%
+  dplyr::group_by(year, is.north) %>%
+  dplyr::mutate(population_group=sum(population)) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(pop_rel_group=population / population_group) %>%
+  dplyr::group_by(year, is.north) %>%
+  dplyr::mutate(test_pop=sum(pop_rel_group)) %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(year, is.north) %>%
+  dplyr::summarise(
+    GDPgrowth_mean=weighted.mean(GDPgrowth, 
+                                  pop_rel_group),
+    GDPgrowth_sd=sd(GDPgrowth*pop_rel_group)
+  ) %>%
+  dplyr::ungroup() %>%
+  ggplot(., aes(x=year, y=GDPgrowth_mean, color=is.north)) +
+  geom_point() + 
+  geom_line() +
+  ylab("annual change in %") +
+  scale_color_icae(palette = "mixed", 
+                   aesthetics=c("color", "fill")
+  ) +
+  ggtitle("GDP growth in euro area North/South (population-weighted)") + 
+  scale_x_continuous(
+    breaks=x_axis_breaks, 
+    expand = expand_scale(
+      mult = c(0, 0), add = c(0, 0.5)
+    )
+  ) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1, scale = 1)
+  ) +
+  theme_icae() + 
+  theme(legend.text=element_text(size=7)) +
+  theme(axis.title = element_text(color="black", size=plots_axis_title_size),
+        axis.title.x = element_blank(),
+        plot.title = element_text(color="black", size=plots_title_size),
+        axis.text = element_text(color="black", size=plots_axis_ticks_size))
+GDPgrowth_plot 
 
 # 1.3 Fiscal balance--------------------------------------------------------
 x_axis_breaks <- c(2000, 2005, 2007, 2010, 2015, 2020)
@@ -259,8 +307,69 @@ publicdebt_plot <- macro_data %>%
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
 publicdebt_plot
 
+# eci and GDP per capita levels
+
+eci_income_data <- data.table::copy(macro_data) %>%
+  select(iso3c, year, eci_harv_hs, gdp_real_pc_ppp) %>%
+  mutate(cluster=ifelse(iso3c %in% countries[["north"]], 
+                        "Northern countries (AT, BE, DE, FI, NL)", ifelse(
+                          iso3c %in% countries[["south"]],
+                          "Southern countries (ES, GR, IT, PT)", ifelse(
+                            iso3c %in% countries[["france"]], 
+                            "France", NA)))
+  ) %>%
+  dplyr::filter(!is.na(cluster), !is.na(gdp_real_pc_ppp), iso3c!="LUX") %>%
+  group_by(iso3c, cluster) %>%
+  summarise_all(mean, na.rm=T)%>%
+  ungroup() 
+
+l_reg <- lm(eci_harv_hs ~ gdp_real_pc_ppp, data = eci_income_data)
+r_sq <- round(summary(l_reg)$r.squared, 2)
+reg_eq <- as.character(as.expression(
+  paste0("$GDP = \\beta_0 + \\beta_1 ECI,$ \\hspace{1cm} $R^2=", r_sq, "$")
+))
+reg_eq
+
+eci_income <- ggplot(eci_income_data, 
+                     aes(x=eci_harv_hs, 
+                         y=gdp_real_pc_ppp, "k", 
+                         color=cluster)) +
+  geom_point(
+    aes(x=eci_harv_hs, 
+        y=gdp_real_pc_ppp, 
+        color=cluster), 
+    show.legend = T) +
+  geom_smooth(
+    aes(x=eci_harv_hs, 
+        y=gdp_real_pc_ppp), 
+    method = "lm", 
+    color="#330080") +
+  geom_label_repel(
+    mapping = aes(
+      x=eci_harv_hs, 
+      y=gdp_real_pc_ppp, 
+      label=iso3c, 
+      color=cluster), 
+    show.legend = F
+  ) +
+  theme_icae() + 
+  scale_color_icae(palette = "mixed") +
+  xlab("Economic complexity index (ECI)") + 
+  ylab("Average GDP per capita (PPP)") +
+  scale_x_continuous(expand = c(0, 0.01)) +
+  scale_y_continuous(labels = scales::number_format(scale = 1/1000, suffix = "k")) +
+  ggtitle("Complexity and per-capita income (average 1999-2016)") +
+  annotate("text", x=1.75, y=25000, 
+           label=TeX(
+             paste0("$GDP = \\beta_0 + \\beta_1 ECI,$  ", " $R^2=", r_sq, "$"), 
+             output = "character"), parse=TRUE) +
+  theme(axis.title = element_text(color="black", size=plots_axis_title_size),
+        plot.title = element_text(color="black", size=plots_title_size),
+        axis.text = element_text(color="black", size=plots_axis_ticks_size))
+eci_income
+
 # Full figure------------------------------------------------------------------
-grid2 <- ggarrange(dev_mean_plot, unemp_plot, 
+grid2 <- ggarrange(GDPgrowth_plot, unemp_plot, 
                    fiscalbalance_plot, publicdebt_plot, 
                    ncol=2, nrow=2, common.legend = T,
                    legend = "bottom", 
@@ -278,3 +387,9 @@ ggsave(plot = grid2,
        filename = paste0(here("output/fig_1_macro-dynamics_"), 
                          classification, ".pdf"),
        width = 11, height = 5)
+
+grid2 <- ggarrange(dev_mean_plot, unemp_plot, 
+                   fiscalbalance_plot, publicdebt_plot, 
+                   ncol=2, nrow=2, common.legend = T,
+                   legend = "bottom", 
+                   labels = paste0(LETTERS[1:4], ")"))

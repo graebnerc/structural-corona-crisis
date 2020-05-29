@@ -30,9 +30,9 @@ if (classification=="north_south"){
   source(here("R/setup_country_classification_North_South.R"))
   macro_data <- fread(here("data/macro_data_fig1-2_4_NEW.csv")) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["north"]],
-                                  "Northern euro area", ifelse(
+                                  "Northern Eurozone countries", ifelse(
                                     iso3c %in% countries[["south"]], 
-                                    "Southern euro area", NA))
+                                    "Southern Eurozone countries", NA))
     ) %>%
     dplyr::mutate(is.north=ifelse(iso3c=="FRA", "France", is.north)
     ) 

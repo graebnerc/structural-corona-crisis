@@ -1,4 +1,3 @@
-# TODO Code for Bar plot is missing
 rm(list=ls())
 library(countrycode)
 library(data.table)
@@ -17,14 +16,20 @@ classification <- "north_south"
 
 macro_data_file <- here("data/macro_data_fig1-2_4_NEW_incl_eci.csv")
 
+
+
+
 if (classification=="north_south"){
   source(here("R/setup_country_classification_North_South.R"))
   
+  title_base <- " in Eurozone North/South (population-weighted)"
+  fig_1_title <- "Macroeconomic polarization in the EMU"
+  
   macro_data <- fread(macro_data_file) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["north"]],
-                                  "Northern euro area", ifelse(
+                                  "Northern Eurozone countries", ifelse(
                                     iso3c %in% countries[["south"]], 
-                                    "Southern euro area", NA))
+                                    "Southern Eurozone countries", NA))
     ) %>%
     dplyr::mutate(is.north=ifelse(iso3c=="FRA", "France", is.north)
     ) %>%
@@ -32,12 +37,32 @@ if (classification=="north_south"){
     ) %>%
     dplyr::mutate(is.north=as.factor(is.north)
     )
+  
+  macro_data_short <- subset(macro_data, year %in% c('1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'))
+  
+  eci_income_data <- data.table::copy(macro_data_short) %>%
+    select(iso3c, year, ECI, gdp_real_pc_ppp) %>%
+    mutate(cluster=ifelse(iso3c %in% countries[["north"]], 
+                          "Northern Eurozone countries", ifelse(
+                            iso3c %in% countries[["south"]],
+                            "Southern Eurozone countries", ifelse(
+                              iso3c %in% countries[["france"]], 
+                              "France", NA)))
+    ) %>%
+    dplyr::filter(!is.na(cluster), !is.na(gdp_real_pc_ppp)) %>%
+    group_by(iso3c, cluster) %>%
+    summarise_all(mean, na.rm=T)%>%
+    ungroup() 
+  
 } else if (classification=="jee"){
   source(here("R/setup_country_classification_JEE.R"))
   
+  title_base <- " in Europe (population-weighted)"
+  fig_1_title <- "Macroeconomic polarization in Europe"
+  
   macro_data <- fread(macro_data_file) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["Core"]],
-                                  "Core euro area", ifelse(
+                                  "Core countries", ifelse(
                                     iso3c %in% countries[["Catchup"]], 
                                     "Catchup countries", ifelse(
                                       iso3c %in% countries[["Finance"]], 
@@ -51,14 +76,37 @@ if (classification=="north_south"){
     ) %>%
     dplyr::mutate(is.north=as.factor(is.north)
     )
+  
+  macro_data_short <- subset(macro_data, year %in% c('1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'))
+  
+  eci_income_data <- data.table::copy(macro_data_short) %>%
+    select(iso3c, year, ECI, gdp_real_pc_ppp) %>%
+    dplyr::mutate(cluster=ifelse(iso3c %in% countries[["Core"]],
+                                  "Core Eurozone", ifelse(
+                                    iso3c %in% countries[["Catchup"]], 
+                                    "Catchup countries", ifelse(
+                                      iso3c %in% countries[["Finance"]], 
+                                      "Finance hubs", ifelse(
+                                        iso3c %in% countries[["Periphery"]], 
+                                        "Southern periphery countries", NA
+                                      )
+                                    )))
+    ) %>%
+    dplyr::filter(!is.na(cluster), !is.na(gdp_real_pc_ppp), iso3c!="LUX") %>%
+    group_by(iso3c, cluster) %>%
+    summarise_all(mean, na.rm=T)%>%
+    ungroup() 
+  
 } else if (classification=="finance"){
   source(here("R/setup_country_classification_finance.R"))
   
+  title_base <- " in Europe (population-weighted)"
+  
   macro_data <- fread(macro_data_file) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["north"]],
-                                  "Northern euro area", ifelse(
+                                  "Northern Eurozone", ifelse(
                                     iso3c %in% countries[["south"]], 
-                                    "Southern euro area", ifelse(
+                                    "Southern Eurozone", ifelse(
                                       iso3c %in% countries[["finance"]], 
                                       "Financial hubs", NA)))
     ) %>%
@@ -68,6 +116,22 @@ if (classification=="north_south"){
     ) %>%
     dplyr::mutate(is.north=as.factor(is.north)
     )
+  
+  macro_data_short <- subset(macro_data, year %in% c('1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'))
+  
+  eci_income_data <- data.table::copy(macro_data_short) %>%
+    select(iso3c, year, ECI, gdp_real_pc_ppp) %>%
+    mutate(cluster=ifelse(iso3c %in% countries[["north"]], 
+                          "Northern EA countries", ifelse(
+                            iso3c %in% countries[["south"]],
+                            "Southern EA countries", ifelse(
+                              iso3c %in% countries[["france"]], 
+                              "France", NA)))
+    ) %>%
+    dplyr::filter(!is.na(cluster), !is.na(gdp_real_pc_ppp), iso3c!="LUX") %>%
+    group_by(iso3c, cluster) %>%
+    summarise_all(mean, na.rm=T)%>%
+    ungroup() 
 }
 
 start_year <- 2000
@@ -114,7 +178,7 @@ unemp_plot <- macro_data %>%
   scale_color_icae(palette = "mixed", 
                    aesthetics=c("color", "fill")
   ) +
-  ggtitle("Unemployment rates in euro area North/South (population-weighted)") + 
+  ggtitle(paste0("Unemployment rates" , title_base) ) + 
   scale_x_continuous(
     breaks=x_axis_breaks, 
     expand = expand_scale(
@@ -161,7 +225,7 @@ GDPgrowth_plot <- macro_data %>%
   scale_color_icae(palette = "mixed", 
                    aesthetics=c("color", "fill")
   ) +
-  ggtitle("GDP growth in euro area North/South (population-weighted)") + 
+  ggtitle(paste0("GDP growth", title_base)) + 
   scale_x_continuous(
     breaks=x_axis_breaks, 
     expand = expand_scale(
@@ -208,7 +272,7 @@ fiscalbalance_plot <- macro_data %>%
   scale_color_icae(palette = "mixed", 
                    aesthetics=c("color", "fill")
   ) +
-  ggtitle("Fiscal balances in euro area North/South (population-weighted)") + 
+  ggtitle(paste0("Fiscal balances", title_base)) + 
   theme(legend.text=element_text(size=7)) +
   scale_x_continuous(
     breaks=x_axis_breaks, 
@@ -256,7 +320,7 @@ publicdebt_plot <- macro_data %>%
   scale_color_icae(palette = "mixed", 
                    aesthetics=c("color", "fill")
   ) +
-  ggtitle("Public debt to GDP in euro area North/South (population-weighted)") + 
+  ggtitle(paste0("Public debt to GDP", title_base)) + 
   scale_x_continuous(
     breaks=x_axis_breaks, 
     expand = expand_scale(
@@ -283,7 +347,7 @@ grid2 <- ggarrange(GDPgrowth_plot, unemp_plot,
 
 grid2 <- annotate_figure(
   grid2,
-  top = text_grob("Macroeconomic polarization in the EMU", 
+  top = text_grob(fig_1_title, 
                   color = "black",  size = 14),
   bottom = text_grob("Source: AMECO (Spring 2020 forecast), own calculations.",
                      color = "black", hjust = 1, x = 1, 
@@ -315,8 +379,8 @@ dev_mean_plot <- macro_data %>%
   ggplot(., 
          aes(x=year, y=dev.mean.GDP_pc_PPP, color=is.north)) +
   geom_line() + geom_point() +
-  ggtitle("Deviation of GDP p.c. from EA-average (population-weighted)") + 
-  ylab("Deviation of GDP p.c. (PPP)\n from euro area average\n in thousand EUR") +
+  ggtitle("Deviation of GDP p.c. from EZ-average (population-weighted)") + 
+  ylab("Deviation of GDP p.c. (PPP)\n from Eurozone average") +
   scale_y_continuous(labels = scales::number_format(suffix = "k")) +
   theme_icae() +
   scale_x_continuous(
@@ -334,21 +398,6 @@ dev_mean_plot <- macro_data %>%
 dev_mean_plot
 
 # 3.2. ECI and GDP per capita levels-------------------------------------------
-
-eci_income_data <- data.table::copy(macro_data) %>%
-  select(iso3c, year, ECI, gdp_real_pc_ppp) %>%
-  mutate(cluster=ifelse(iso3c %in% countries[["north"]], 
-                        "Northern EA countries", ifelse(
-                          iso3c %in% countries[["south"]],
-                          "Southern EA countries", ifelse(
-                            iso3c %in% countries[["france"]], 
-                            "France", NA)))
-  ) %>%
-  dplyr::filter(!is.na(cluster), !is.na(gdp_real_pc_ppp), iso3c!="LUX") %>%
-  group_by(iso3c, cluster) %>%
-  summarise_all(mean, na.rm=T)%>%
-  ungroup() 
-
 l_reg <- lm(ECI ~ gdp_real_pc_ppp, data = eci_income_data)
 r_sq <- round(summary(l_reg)$r.squared, 2)
 reg_eq <- as.character(as.expression(
@@ -385,7 +434,7 @@ eci_income <- ggplot(eci_income_data,
   scale_x_continuous(expand = c(0, 0.02)) +
   scale_y_continuous(labels = scales::number_format(scale = 1/1000, suffix = "k")) +
   ggtitle("Complexity and per-capita income (average 1999-2016)") +
-  annotate("text", x=1.75, y=9000, 
+  annotate("text", x=1.75, y=20000, 
            label=TeX(
              paste0("$GDP = \\beta_0 + \\beta_1 ECI,$  ", " $R^2=", r_sq, "$"), 
              output = "character"), parse=TRUE) +

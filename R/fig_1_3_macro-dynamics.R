@@ -14,10 +14,7 @@ if (!require("icaeDesign")){
 
 classification <- "north_south"
 
-macro_data_file <- here("data/macro_data_fig1-2_4_NEW_incl_eci.csv")
-
-
-
+macro_data_file <- here("data/macro_data.csv")
 
 if (classification=="north_south"){
   source(here("R/setup_country_classification_North_South.R"))
@@ -38,7 +35,8 @@ if (classification=="north_south"){
     dplyr::mutate(is.north=as.factor(is.north)
     )
   
-  macro_data_short <- subset(macro_data, year %in% c('1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'))
+  macro_data_short <- subset(macro_data, 
+                             year %in% as.character(1999:2016))
   
   eci_income_data <- data.table::copy(macro_data_short) %>%
     select(iso3c, year, ECI, gdp_real_pc_ppp) %>%
@@ -77,7 +75,7 @@ if (classification=="north_south"){
     dplyr::mutate(is.north=as.factor(is.north)
     )
   
-  macro_data_short <- subset(macro_data, year %in% c('1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'))
+  macro_data_short <- subset(macro_data, year %in% as.character(1999:2016))
   
   eci_income_data <- data.table::copy(macro_data_short) %>%
     select(iso3c, year, ECI, gdp_real_pc_ppp) %>%
@@ -117,7 +115,7 @@ if (classification=="north_south"){
     dplyr::mutate(is.north=as.factor(is.north)
     )
   
-  macro_data_short <- subset(macro_data, year %in% c('1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'))
+  macro_data_short <- subset(macro_data, year %in% as.character(1999:2016))
   
   eci_income_data <- data.table::copy(macro_data_short) %>%
     select(iso3c, year, ECI, gdp_real_pc_ppp) %>%

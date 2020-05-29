@@ -28,7 +28,7 @@ x_axis_breaks <- c(2017, 2018, 2019, 2020)
 
 if (classification=="north_south"){
   source(here("R/setup_country_classification_North_South.R"))
-  macro_data <- fread(here("data/macro_data_fig1-2_4_NEW.csv")) %>%
+  macro_data <- fread(here("data/macro_data.csv")) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["north"]],
                                   "Northern Eurozone countries", ifelse(
                                     iso3c %in% countries[["south"]], 
@@ -39,7 +39,7 @@ if (classification=="north_south"){
 } else if (classification=="jee"){
   source(here("R/setup_country_classification_JEE.R"))
   
-  macro_data <- fread(here("data/macro_data_fig1-2_4_NEW.csv")) %>%
+  macro_data <- fread(here("data/macro_data.csv")) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["Core"]],
                                   "Core euro area", ifelse(
                                     iso3c %in% countries[["Catchup"]], 
@@ -54,7 +54,7 @@ if (classification=="north_south"){
 } else if (classification=="finance"){
   source(here("R/setup_country_classification_finance.R"))
   
-  macro_data <- fread(here("data/macro_data_fig1-2_4_NEW.csv")) %>%
+  macro_data <- fread(here("data/macro_data.csv")) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["north"]],
                                   "Northern euro area", ifelse(
                                     iso3c %in% countries[["south"]], 
@@ -138,7 +138,7 @@ exports_domestic_plot <- ggplot(
 exports_domestic_plot
 
 ggsave(plot = exports_domestic_plot, 
-       filename = paste0(here("output/fig_2_exp-domestic_"), classification, ".pdf"),
+       filename = paste0(here("output/fig_4_exp-domestic_"), classification, ".pdf"),
        width = fig_width, height = fig_height)
 
 # Figure 3: Exports of goods and services--------------------------------------
@@ -182,6 +182,6 @@ goods_services_plot <- ggplot(
 goods_services_plot
 
 ggsave(plot = goods_services_plot, 
-       filename = paste0(here("output/fig_3_exp-goods-services_"), 
+       filename = paste0(here("output/fig_5_exp-goods-services_"), 
                          classification, ".pdf"),
        width = fig_width, height = fig_height)

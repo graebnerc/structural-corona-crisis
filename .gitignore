@@ -4,4 +4,6 @@
 .RDataTmp
 .Ruserdata
 .DS_Store
+R/old
 R/own_code_for_data
+output/old

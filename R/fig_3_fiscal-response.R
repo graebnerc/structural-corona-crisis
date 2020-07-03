@@ -6,7 +6,7 @@ library(scales)
 if (!require("icaeDesign")){
   devtools::install_github("graebnerc/icaeDesign")
 }
-
+tiff_res <- 600 # resolution for tiff figures
 plots_title_size <- 12
 plots_axis_title_size <- 11
 plots_axis_ticks_size <- 10
@@ -37,6 +37,12 @@ plot_fiscalresponse <- fread(here("data/Fiscal_responses.csv")) %>%
         axis.text = element_text(color="black", size=plots_axis_ticks_size),
         legend.title = element_blank(), legend.position = "bottom")
 plot_fiscalresponse
+
 ggsave(plot = plot_fiscalresponse, 
        filename = here("output/fig_3_fiscalresponse.pdf"),
+       width = 7, height = 5)
+
+ggsave(plot = plot_fiscalresponse, 
+       filename = here("output/fig_3_fiscalresponse.tiff"),
+       dpi = tiff_res, compression="lzw", type="cairo",
        width = 7, height = 5)

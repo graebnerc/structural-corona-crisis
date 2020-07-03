@@ -11,6 +11,8 @@ library(scales)
 if (!require("icaeDesign")){
   devtools::install_github("graebnerc/icaeDesign")
 }
+make_tiff <- TRUE # also save tiff versions of figures (takes longer)
+tiff_res <- 600 # resolution for tiff figures
 
 classification <- "north_south" 
 # "north_south" for the main paper, "jee" for the appendix
@@ -76,7 +78,7 @@ if (classification=="north_south"){
                                       iso3c %in% countries[["Finance"]], 
                                       "Finance hubs", ifelse(
                                         iso3c %in% countries[["Periphery"]], 
-                                        "Southern periphery countries", NA
+                                        "Southern Eurozone countries", NA
                                       )
                                     )))
     )  %>%
@@ -96,7 +98,7 @@ if (classification=="north_south"){
                                       iso3c %in% countries[["Finance"]], 
                                       "Finance hubs", ifelse(
                                         iso3c %in% countries[["Periphery"]], 
-                                        "Southern periphery countries", NA
+                                        "Southern Eurozone countries", NA
                                       )
                                     )))
     ) %>%
@@ -299,32 +301,39 @@ publicdebt_plot <- macro_data %>%
 publicdebt_plot
 
 # Full figure 1----------------------------------------------------------------
-grid2 <- ggarrange(GDPgrowth_plot, unemp_plot, 
+fig_1 <- ggarrange(GDPgrowth_plot, unemp_plot, 
                    fiscalbalance_plot, publicdebt_plot, 
                    ncol=2, nrow=2, common.legend = T,
                    legend = "bottom", 
                    labels = paste0(LETTERS[1:4], ")"))
 
-grid2 <- annotate_figure(
-  grid2,
+fig_1 <- annotate_figure(
+  fig_1,
   top = text_grob(fig_1_title, 
                   color = "black",  size = 14),
   bottom = text_grob("Source: AMECO (Spring 2020 forecast), own calculations.",
                      color = "black", hjust = 1, x = 1, 
                      face = "italic", size = 8))
 
-ggsave(plot = grid2, 
+ggsave(plot = fig_1, 
        filename = paste0(here("output/fig_1_macro-dynamics_"), 
                          classification, ".pdf"),
        width = 11, height = 5)
 
+if (make_tiff){
+  ggsave(plot = fig_1, 
+         filename = paste0(here("output/fig_1_macro-dynamics_"), 
+                           classification, ".tiff"), dpi = tiff_res, 
+         compression="lzw", type="cairo",
+         width = 11, height = 5)
+}
 # Figure 2: Tax revenues and government spending-------------------------------
 # 2.1 Tax revenues-------------------------------------------------------------
 start_year <- 2017
 end_year <- 2020
 fig_height <- 3
-fig_width <- 11
-plots_title_size <- 9
+fig_width <- 10
+plots_title_size <- 12
 plots_axis_title_size <- 9
 plots_axis_ticks_size <- 8
 strip_text_size <- 11
@@ -371,13 +380,13 @@ taxrevenues_plot <- macro_data %>%
     expand = expand_scale(mult = c(0, 0), add = c(2, 0))
   ) +
   theme_icae() + 
-  coord_cartesian(ylim = c(90, 115)) +
+  coord_cartesian(ylim = c(90, 117)) +
   theme(legend.text=element_text(size=legend_font_size)) +
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
         axis.title.x = element_blank(),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size), 
-        strip.text.x = element_text(color="black", size=strip_text_size))
+        strip.text = element_text(color="black", size=strip_text_size))
 taxrevenues_plot 
 
 # 2.2 Government spending--------------------------------------------------------
@@ -414,14 +423,14 @@ governmentspending_plot <- macro_data %>%
   scale_x_continuous(
     breaks=x_axis_breaks, 
     expand = expand_scale(
-      mult = c(0, 0), add = c(0, 0.5)
+      mult = c(0, 0), add = c(0.5, 0.5)
     )
   ) +
   scale_y_continuous(
     labels = scales::percent_format(accuracy = 1, scale = 1)
   ) +
   theme_icae() + 
-  coord_cartesian(ylim = c(90, 115)) +
+  coord_cartesian(ylim = c(90, 117)) +
   theme(legend.text=element_text(size=legend_font_size)) +
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
         axis.title.x = element_blank(),
@@ -444,12 +453,29 @@ ggsave(plot = fig_2,
                          classification, ".pdf"),
        width = fig_width, height = fig_height)
 
+if (make_tiff){
+  ggsave(plot = fig_2, 
+         filename = paste0(here("output/fig_2_revenues_spending_"), 
+                           classification, ".tiff"), dpi = tiff_res, 
+         compression="lzw", type="cairo",
+         width = fig_width, height = fig_height)
+}
+
 # Figure 4: GDP deviation and ECI correlation----------------------------------
 
 # 4.1. Deviation from mean income----------------------------------------------
 start_year <- 2000
 end_year <- 2020
 x_axis_breaks <- c(2000, 2005, 2007, 2010, 2015, 2020)
+
+if (classification=="jee"){
+  macro_data <- macro_data %>%
+    dplyr::mutate(
+      is.north=as.character(is.north),
+      is.north=ifelse(
+      is.north=="Southern Eurozone countries", "Southern Eurozone", is.north))
+}
+
 dev_mean_plot <- macro_data %>%
   dplyr::filter(!is.na(population), !is.na(gdp_real_pc_ppp), 
                 year>=start_year, 
@@ -496,6 +522,9 @@ reg_eq
 if (classification=="jee"){
   y_notation <- 10500
   x_notation <- 1.8
+  eci_income_data <- eci_income_data %>%
+    dplyr::mutate(cluster=ifelse(cluster=="Southern Eurozone countries", 
+                                 "Southern Eurozone", cluster))
 } else if (classification=="north_south"){
   y_notation <- 20000
   x_notation <- 1.8
@@ -534,7 +563,7 @@ eci_income <- ggplot(eci_income_data,
            label=TeX(
              paste0("$GDP = \\beta_0 + \\beta_1 ECI,$  ", " $R^2=", r_sq, "$"), 
              output = "character"), parse=TRUE) +
-  theme(legend.text=element_text(size=legend_font_size-1)) +
+  theme(legend.text=element_text(size=legend_font_size-2)) +
   theme(axis.title = element_text(color="black", size=plots_axis_title_size),
         plot.title = element_text(color="black", size=plots_title_size),
         axis.text = element_text(color="black", size=plots_axis_ticks_size))
@@ -557,3 +586,11 @@ ggsave(plot = fig_4,
        filename = paste0(here("output/fig_4_divergence-eci_"), 
                          classification, ".pdf"),
        width = 6, height = 5)
+
+if (make_tiff){
+  ggsave(plot = fig_4, 
+         filename = paste0(here("output/fig_4_divergence-eci_"), 
+                           classification, ".tiff"), dpi = tiff_res, 
+         compression="lzw", type="cairo",
+         width = 6, height = 5)
+}

@@ -12,13 +12,14 @@ if (!require("icaeDesign")){
   devtools::install_github("graebnerc/icaeDesign")
 }
 
+tiff_res <- 600 # resolution for tiff figures
 classification <- "north_south"
 # "north_south" for the main paper, "jee" for the appendix
 start_year <- 2017
 end_year <- 2020
 
 fig_height <- 3
-fig_width <- 11
+fig_width <- 10
 plots_title_size <- 12
 plots_axis_title_size <- 11
 plots_axis_ticks_size <- 10
@@ -130,6 +131,13 @@ ggsave(plot = exports_domestic_plot,
                          classification, ".pdf"),
        width = fig_width, height = fig_height)
 
+ggsave(plot = exports_domestic_plot, 
+       filename = paste0(here("output/fig_5_exp-domestic_"), 
+                         classification, ".tiff"), 
+       dpi = tiff_res, compression="lzw", type="cairo",
+       width = fig_width, height = fig_height)
+
+
 # Figure 3: Exports of goods and services--------------------------------------
 
 goods_services_plot_data <- macro_data %>%
@@ -174,4 +182,10 @@ goods_services_plot
 ggsave(plot = goods_services_plot, 
        filename = paste0(here("output/fig_6_exp-goods-services_"), 
                          classification, ".pdf"),
+       width = fig_width, height = fig_height)
+
+ggsave(plot = goods_services_plot, 
+       filename = paste0(here("output/fig_6_exp-goods-services_"), 
+                         classification, ".tiff"), 
+       dpi = tiff_res, compression="lzw", type="cairo",
        width = fig_width, height = fig_height)

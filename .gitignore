@@ -7,3 +7,4 @@
 R/old
 R/own_code_for_data
 output/old
+output/*.zip

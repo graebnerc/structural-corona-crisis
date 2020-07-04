@@ -13,15 +13,15 @@ plots_axis_ticks_size <- 10
 plot_title <- "Discretionary 2020 fiscal measures adopted in response to coronavirus\n (in % of 2019 GDP)"
 
 plot_fiscalresponse <- fread(here("data/Fiscal_responses.csv")) %>%
-  tidyr::pivot_longer(cols = -V1, names_to = "country", values_to = "value") %>%
+  tidyr::pivot_longer(cols = -instrument, names_to = "country", values_to = "value") %>%
   dplyr::mutate(
-    V1=factor(V1, levels=c(
+    instrument=factor(instrument, levels=c(
       "Other liquidity provisions / guarantees", "Deferral",
       "Immediate fiscal impulse"))) %>%
   ggplot(
     data=., 
     aes(x=reorder(country, -value), y=value, 
-        fill=V1, color=V1)
+        fill=instrument, color=instrument)
   ) +
   geom_bar(stat="identity") +
   scale_y_continuous(

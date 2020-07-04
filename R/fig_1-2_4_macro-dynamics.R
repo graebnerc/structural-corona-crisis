@@ -35,6 +35,7 @@ if (classification=="north_south"){
   fig_1_title <- "Macroeconomic polarization in the EMU"
   
   macro_data <- fread(macro_data_file) %>%
+    dplyr::select(-ID) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["north"]],
                                   "Northern Eurozone countries", ifelse(
                                     iso3c %in% countries[["south"]], 
@@ -71,6 +72,7 @@ if (classification=="north_south"){
   fig_1_title <- "Macroeconomic polarization in Europe"
   
   macro_data <- fread(macro_data_file) %>%
+    dplyr::select(-ID) %>%
     dplyr::mutate(is.north=ifelse(iso3c %in% countries[["Core"]],
                                   "Core countries", ifelse(
                                     iso3c %in% countries[["Catchup"]], 
@@ -446,6 +448,11 @@ fig_2 <- ggarrange(taxrevenues_plot, governmentspending_plot,
                    legend = "bottom", 
                    labels = paste0(LETTERS[1:2], ")"))
 
+fig_2 <- annotate_figure(
+  fig_2,
+  bottom = text_grob("Source: AMECO (Spring 2020 forecast), own calculations.",
+                     color = "black", hjust = 1, x = 1, 
+                     face = "italic", size = 8))
 fig_height <- 3
 fig_width <- 11
 ggsave(plot = fig_2, 
